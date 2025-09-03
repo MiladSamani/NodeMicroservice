@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { Password } from '../services/password';
 
 // Properties required to create a new User (when calling User.build)
 interface UserAttrs {
@@ -29,6 +30,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   }
+});
+
+userSchema.pre('save', async function(done) {
+  if (this.isModified('password')) {
+    const hashed = await Password.toHash(this.get('password'));
+    this.set('password', hashed);
+  }
+  done();
 });
 
 // Add a custom static method to the schema (to safely create a new User with TypeScript checks)

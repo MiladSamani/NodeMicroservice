@@ -1,25 +1,25 @@
 import mongoose from 'mongoose';
 
-// An interface that describes the properties
-// that are requried to create a new User
+// Properties required to create a new User (when calling User.build)
 interface UserAttrs {
   email: string;
   password: string;
 }
 
-// An interface that describes the properties
-// that a User Model has
+// Properties and methods that the User Model itself has
+// (e.g., User.build, User.find, User.create, ...)
 interface UserModel extends mongoose.Model<UserDoc> {
   build(attrs: UserAttrs): UserDoc;
 }
 
-// An interface that describes the properties
-// that a User Document has
+// Properties that a single User Document (a record in MongoDB) has
+// (e.g., user.email, user.password, user.save)
 interface UserDoc extends mongoose.Document {
   email: string;
   password: string;
 }
 
+// Define schema = shape of the User collection in MongoDB
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -30,10 +30,13 @@ const userSchema = new mongoose.Schema({
     required: true
   }
 });
+
+// Add a custom static method to the schema (to safely create a new User with TypeScript checks)
 userSchema.statics.build = (attrs: UserAttrs) => {
   return new User(attrs);
 };
 
+// Create the User Model (connects the schema with MongoDB collection "users")
 const User = mongoose.model<UserDoc, UserModel>('User', userSchema);
 
 export { User };

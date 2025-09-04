@@ -1,51 +1,67 @@
-import mongoose from 'mongoose';
-import { Password } from '../services/password';
+import mongoose from "mongoose";
+import { Password } from "../services/password";
 
-// Properties required to create a new User (when calling User.build)
+// An interface that describes the properties
+// that are requried to create a new User
 interface UserAttrs {
   email: string;
   password: string;
 }
 
-// Properties and methods that the User Model itself has
-// (e.g., User.build, User.find, User.create, ...)
+// An interface that describes the properties
+// that a User Model has
 interface UserModel extends mongoose.Model<UserDoc> {
   build(attrs: UserAttrs): UserDoc;
 }
 
-// Properties that a single User Document (a record in MongoDB) has
-// (e.g., user.email, user.password, user.save)
+// An interface that describes the properties
+// that a User Document has
 interface UserDoc extends mongoose.Document {
   email: string;
   password: string;
 }
 
-// Define schema = shape of the User collection in MongoDB
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true
-  },
-  password: {
-    type: String,
-    required: true
-  }
-});
+interface UserJSON {
+  id: string;
+  email: string;
+}
 
-userSchema.pre('save', async function(done) {
-  if (this.isModified('password')) {
-    const hashed = await Password.toHash(this.get('password'));
-    this.set('password', hashed);
+const userSchema = new mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+  },
+  {
+   toJSON: {
+  transform(doc, ret: any) {
+    const transformed: UserJSON = {
+      id: ret._id,
+      email: ret.email
+    };
+    return transformed;
+  },
+}
+  }
+);
+
+userSchema.pre("save", async function (done) {
+  if (this.isModified("password")) {
+    const hashed = await Password.toHash(this.get("password"));
+    this.set("password", hashed);
   }
   done();
 });
 
-// Add a custom static method to the schema (to safely create a new User with TypeScript checks)
 userSchema.statics.build = (attrs: UserAttrs) => {
   return new User(attrs);
 };
 
-// Create the User Model (connects the schema with MongoDB collection "users")
-const User = mongoose.model<UserDoc, UserModel>('User', userSchema);
+const User = mongoose.model<UserDoc, UserModel>("User", userSchema);
 
 export { User };

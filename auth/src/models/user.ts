@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-   toJSON: {
+    toJSON: {
   transform(doc, ret: any) {
     const transformed: UserJSON = {
       id: ret._id,
@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema(
     };
     return transformed;
   },
-}
+},
   }
 );
 
